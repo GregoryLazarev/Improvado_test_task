@@ -1,8 +1,30 @@
+import argparse
+import re
 from abc import ABC, abstractmethod
 import csv
 import json
+import os
 from typing import List
 import xml.etree.ElementTree as ET
+
+
+def arg_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-f', '--file', nargs='+')
+    args = parser.parse_args()
+    return args.file
+
+
+def validate_args(args):
+    wrong_args = []
+    for arg in args:
+        if not re.search(r'\w+\.(csv|xml|json)$', arg):
+            wrong_args.append(arg)
+
+        if len(wrong_args) > 0:
+            for wrong_arg in wrong_args:
+                print(f'Invalid format of {wrong_arg}')
+            os._exit(1)
 
 
 class ReaderStrategy(ABC):
@@ -83,10 +105,10 @@ class Validator:
 CSV_F = 'csv_data_1.csv'
 JSON_F = 'json_data.json'
 XML_F = 'xml_data.xml'
-reader = File_reader()
-r = reader.read(XML_F)
-print(r)
-
+# reader = File_reader()
+# r = reader.read(XML_F)
+# print(r)
+validate_args(arg_parser())
 # try:
 #     print(int('v'))
 # except ValueError:
