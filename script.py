@@ -7,6 +7,7 @@ import os
 from typing import List
 import xml.etree.ElementTree as ET
 
+
 class Argument_parser:
     def __init__(self):
         parser = argparse.ArgumentParser()
@@ -14,19 +15,22 @@ class Argument_parser:
         args = parser.parse_args()
         self._args = args.file
 
-
     def validate_args(self):
         wrong_args = []
+        not_found_files = []
         for arg in self._args:
-            if not re.search(r'\w+\.(csv|xml|json)$', arg):
+            if not os.path.isfile(arg):
+                not_found_files.append(arg)
+            elif not re.search(r'\w+\.(csv|xml|json)$', arg):
                 wrong_args.append(arg)
 
-        if len(wrong_args) > 0:
+        if len(wrong_args) > 0 or len(not_found_files) > 0:
             for wrong_arg in wrong_args:
                 print(f'Invalid format of {wrong_arg}')
+            for not_found in not_found_files:
+                print(f'File {not_found} not found.')
             os._exit(1)
 
-        
     def get_args(self):
         self.validate_args()
         return self._args
@@ -92,9 +96,15 @@ class File_reader:
         else:
             self.set_strategy(None)
 
+        if os.path.isfile(file):
+            print(f'{file} not found')
+            # os._exit(1)
+
         # Если нет нужного обработчика формата, вывести ошибку.
         if self._strategy != None:
-            return self._strategy.read(self, file)
+            print(os.path.isfile(file))
+            data = self._strategy.read(self, file)
+            return {'file_name': file, 'data': data}
         else:
             print(f'Unknown format {file_format}')
 
@@ -114,7 +124,11 @@ XML_F = 'xml_data.xml'
 # r = reader.read(XML_F)
 # print(r)
 parser = Argument_parser()
-parser.get_args()
+file_names = parser.get_args()
+reader = File_reader()
+for file in file_names:
+    r = reader.read(file)
+    print(r)
 # try:
 #     print(int('v'))
 # except ValueError:
