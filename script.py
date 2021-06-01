@@ -96,13 +96,8 @@ class File_reader:
         else:
             self.set_strategy(None)
 
-        if os.path.isfile(file):
-            print(f'{file} not found')
-            # os._exit(1)
-
         # Если нет нужного обработчика формата, вывести ошибку.
         if self._strategy != None:
-            print(os.path.isfile(file))
             data = self._strategy.read(self, file)
             return {'file_name': file, 'data': data}
         else:
@@ -113,7 +108,7 @@ class Validator:
     def __init__(self) -> None:
         self.errors = []
 
-    def Validate(self, data, file_name):
+    def Validate(self, data):
         pass
 
 
@@ -128,7 +123,7 @@ file_names = parser.get_args()
 reader = File_reader()
 for file in file_names:
     r = reader.read(file)
-    print(r)
+    # print(r)
 # try:
 #     print(int('v'))
 # except ValueError:
