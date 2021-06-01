@@ -7,24 +7,29 @@ import os
 from typing import List
 import xml.etree.ElementTree as ET
 
+class Argument_parser:
+    def __init__(self):
+        parser = argparse.ArgumentParser()
+        parser.add_argument('-f', '--file', nargs='+')
+        args = parser.parse_args()
+        self._args = args.file
 
-def arg_parser():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-f', '--file', nargs='+')
-    args = parser.parse_args()
-    return args.file
 
-
-def validate_args(args):
-    wrong_args = []
-    for arg in args:
-        if not re.search(r'\w+\.(csv|xml|json)$', arg):
-            wrong_args.append(arg)
+    def validate_args(self):
+        wrong_args = []
+        for arg in self._args:
+            if not re.search(r'\w+\.(csv|xml|json)$', arg):
+                wrong_args.append(arg)
 
         if len(wrong_args) > 0:
             for wrong_arg in wrong_args:
                 print(f'Invalid format of {wrong_arg}')
             os._exit(1)
+
+        
+    def get_args(self):
+        self.validate_args()
+        return self._args
 
 
 class ReaderStrategy(ABC):
@@ -108,7 +113,8 @@ XML_F = 'xml_data.xml'
 # reader = File_reader()
 # r = reader.read(XML_F)
 # print(r)
-validate_args(arg_parser())
+parser = Argument_parser()
+parser.get_args()
 # try:
 #     print(int('v'))
 # except ValueError:
