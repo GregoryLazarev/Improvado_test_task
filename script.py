@@ -49,8 +49,8 @@ class Read_from_CSV(ReaderStrategy):
             data = csv.reader(csv_file, delimiter=',')
             headers = next(data)
             for row in data:
-                d = dict(zip(headers, row))
-                result.append(d)
+                result_dict = dict(zip(headers, row))
+                result.append(result_dict)
         return result
 
 
@@ -83,10 +83,7 @@ class File_reader:
     def set_strategy(self, strategy: ReaderStrategy):
         self._strategy = strategy
 
-    def read(self, file):
-        file_format = file.split('.')[-1]
-
-        # Выбор стратегии в зависимости от формата входного файла
+    def choose_strategy(self, file_format):
         if file_format == 'csv':
             self.set_strategy(Read_from_CSV)
         elif file_format == 'json':
@@ -96,7 +93,10 @@ class File_reader:
         else:
             self.set_strategy(None)
 
-        # Если нет нужного обработчика формата, вывести ошибку.
+    def read(self, file):
+        file_format = file.split('.')[-1]
+        self.choose_strategy(file_format)
+
         if self._strategy != None:
             data = self._strategy.read(self, file)
             return {'file_name': file, 'data': data}
@@ -104,26 +104,48 @@ class File_reader:
             print(f'Unknown format {file_format}')
 
 
-class Validator:
+class Out_file_writer:
     def __init__(self) -> None:
         self.errors = []
+        self.basic_out_file_name = 'basic.tsv'
+        self.advanced_out_file_name = 'advanced.tsv'
 
-    def Validate(self, data):
+    def validate(data):
+        d = data.get('data')
+        for e in d:
+            keys = e.keys()
+            val = e.values()
+            print(keys)
+            print(val)
+
+    def write(self, data, headers):
+        # print (data)
+        for element in data:
+            row = []
+            file_name = element.get('file_name')
+            row_data = element.get('data')
+            for dict_data in row_data:
+                for header in headers:
+                    row.append(dict_data.get(header))
+            print (row)
         pass
 
-
-CSV_F = 'csv_data_1.csv'
-JSON_F = 'json_data.json'
-XML_F = 'xml_data.xml'
-# reader = File_reader()
-# r = reader.read(XML_F)
-# print(r)
 parser = Argument_parser()
 file_names = parser.get_args()
 reader = File_reader()
+out_file_writer = Out_file_writer()
+headers_from_files = []
+data = []
 for file in file_names:
-    r = reader.read(file)
-    # print(r)
+    file_data = reader.read(file)
+    data.append(file_data)
+    headers_from_files.append(list(file_data.get('data')[0].keys()))
+headers = headers_from_files[0]
+for header in headers_from_files:
+    headers = list(set(headers) & set(header))
+headers.sort()
+out_file_writer.write(data, headers)
+
 # try:
 #     print(int('v'))
 # except ValueError:
