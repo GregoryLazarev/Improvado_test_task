@@ -104,49 +104,80 @@ class File_reader:
             print(f'Unknown format {file_format}')
 
 
-class Out_file_writer:
+class Data_parser:
     def __init__(self) -> None:
         self.errors = []
+        self.raw_data = []
+        self.processed_data = []
+        self.headers = []
         self.basic_out_file_name = 'basic.tsv'
         self.advanced_out_file_name = 'advanced.tsv'
 
-    def validate(data):
-        d = data.get('data')
-        for e in d:
-            keys = e.keys()
-            val = e.values()
-            print(keys)
-            print(val)
+    def get_data_from_files(self, files):
+        headers_from_files = []
+        for file in files:
+            file_data = reader.read(file)
+            self.raw_data.append(file_data)
+            headers_from_files.append(list(file_data.get('data')[0].keys()))
 
-    def write(self, data, headers):
-        # print (data)
-        for element in data:
-            row = []
-            file_name = element.get('file_name')
-            row_data = element.get('data')
-            for dict_data in row_data:
-                for header in headers:
-                    row.append(dict_data.get(header))
-            print (row)
+        headers = headers_from_files[0]
+        for header in headers_from_files:
+            headers = list(set(headers) & set(header))
+        headers.sort()
+        self.headers = headers
         pass
+
+    def parse(self):
+        while len(self.raw_data) > 0:
+            element = self.raw_data.pop(0)
+            file_name = element.get('file_name')
+            rows_from_file = element.get('data')
+            num_of_rows = len(rows_from_file)
+            for i in range(num_of_rows):
+                row = []
+                row_from_file = rows_from_file.pop(0)
+                for header in self.headers:
+                    row_element = row_from_file.get(header)
+                    if re.match(r'M', header):
+                        try:
+                            row_element = (int(row_element))
+                        except ValueError:
+                            self.errors.append(f'Ошибка!\nФайл: {file_name}\nСтрока: {i+1}\nСтолбец: {header}\nНевозможно преобразовать данное значение в целочисленное\n\n')
+                            continue
+                    row.append(row_element)
+
+                if len(row) == len(self.headers):
+                    self.processed_data.append(row)
+        self.processed_data.sort()
+
+    def list_to_str(self, in_list, delimiter):
+        result = ''
+        for element in in_list:
+                result += f'{str(element)}{delimiter}'
+        return result[:-1]
+
+    def write_to_file(self):
+        with open(self.basic_out_file_name, 'w') as out_file:
+            out_file.write(self.list_to_str(self.headers, '\t')+'\n')
+            for element in self.processed_data:
+                out_file.write(self.list_to_str(element, '\t')+'\n')
+
+
+            # tsw_writer = csv.writer(out_file, delimiter='\t')
+            # tsw_writer.writerow(self.headers)
+            # tsw_writer.writerows(self.processed_data)
+
+    def print_errors(self):
+        for e in self.errors:
+            print(e)
+
 
 parser = Argument_parser()
 file_names = parser.get_args()
 reader = File_reader()
-out_file_writer = Out_file_writer()
-headers_from_files = []
-data = []
-for file in file_names:
-    file_data = reader.read(file)
-    data.append(file_data)
-    headers_from_files.append(list(file_data.get('data')[0].keys()))
-headers = headers_from_files[0]
-for header in headers_from_files:
-    headers = list(set(headers) & set(header))
-headers.sort()
-out_file_writer.write(data, headers)
+data_parser = Data_parser()
 
-# try:
-#     print(int('v'))
-# except ValueError:
-#     print('Введена буква')
+data_parser.get_data_from_files(file_names)
+data_parser.parse()
+data_parser.print_errors()
+data_parser.write_to_file()
