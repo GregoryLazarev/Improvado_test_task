@@ -39,7 +39,7 @@ python script.py -f csv_data_1.csv csv_data_2.csv json_data.json xml_data.xml
 
 ## Требования к `.json` файлам
 
-`.json` файл должен иметь следуующую структуру:
+`.json` файл должен иметь следующую структуру:
 
 ```
 {
@@ -64,28 +64,30 @@ python script.py -f csv_data_1.csv csv_data_2.csv json_data.json xml_data.xml
 `.xml` файл должен содержать в себе следующую структуру:
 
 ```
-<objects>
-  <object name="D1">
-    <value>s</value>
-  </object>
-  <object name="D2">
-    <value>s</value>
-  </object>
-  ...
-  <object name="Dn">
-    <value>s</value>
-  </object>
-  <object name="M1">
-    <value>i</value>
-  </object>
-  <object name="M2">
-    <value>i</value>
-  </object>
-  ...
-  <object name="Mn">
-    <value>i</value>
-  </object>
-</objects>
+<root>
+  <objects>
+    <object name="D1">
+      <value>s</value>
+    </object>
+    <object name="D2">
+      <value>s</value>
+    </object>
+    ...
+    <object name="Dn">
+      <value>s</value>
+    </object>
+    <object name="M1">
+      <value>i</value>
+    </object>
+    <object name="M2">
+      <value>i</value>
+    </object>
+    ...
+    <object name="Mn">
+      <value>i</value>
+    </object>
+  </objects>
+</root>
 ```
 Где _s_ строка и _i_ целое число.
 
@@ -99,7 +101,7 @@ python script.py -f csv_data_1.csv csv_data_2.csv json_data.json xml_data.xml
 |  s  |  s  | ... |  s  |  i  |  i  | ... |  i  |
 | ... | ... | ... | ... | ... | ... | ... | ... |
 
-Он отсортирован по колонке **D1** и содержать даннные из всех входных файлов.
+Он отсортирован по колонке **D1** и содержит данные из всех входных файлов.
 
 В качестве разделителя столбцов использован символ табуляции `\t`
 
@@ -110,10 +112,10 @@ python script.py -f csv_data_1.csv csv_data_2.csv json_data.json xml_data.xml
 |  s  |  s  | ... |  s  |  i  |  i  | ... |  i  |
 | ... | ... | ... | ... | ... | ... | ... | ... |
 
-В колонках **MS1**...**MSn** находится суммы знаений соответствующих **M1**...**Mn** из входных файлов, сгруппированные
+В колонках **MS1**...**MSn** находятся суммы значений, соответствующих **M1**...**Mn** из входных файлов, сгруппированные
 по уникальнным значениям комбинаций строк из **D1**...**Dn**.
 
-В качестве разделителя столбцов использован символ табуляции `\t
+В качестве разделителя столбцов использован символ табуляции `\t`
 
 # Вывод ошибок
 ## Некорректные входные данные
