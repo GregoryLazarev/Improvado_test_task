@@ -6,6 +6,7 @@ import json
 import os
 from typing import List
 import xml.etree.ElementTree as ET
+from enum import Enum
 
 
 class Argument_parser:
@@ -104,14 +105,18 @@ class File_reader:
             print(f'Unknown format {file_format}')
 
 
+class State_of_equality(Enum):
+    NOT_EQUAL = 0
+    EQUAL = 1
+
+
 class Data_parser:
     def __init__(self) -> None:
         self.errors = []
         self.raw_data = []
         self.processed_data = []
         self.headers = []
-        self.basic_out_file_name = 'basic.tsv'
-        self.advanced_out_file_name = 'advanced.tsv'
+        self.headers_for_summarized_data = []
 
     def get_data_from_files(self, files):
         headers_from_files = []
@@ -125,7 +130,7 @@ class Data_parser:
             headers = list(set(headers) & set(header))
         headers.sort()
         self.headers = headers
-        pass
+        self.set_headers_for_summarized_data()
 
     def parse(self):
         while len(self.raw_data) > 0:
@@ -153,19 +158,48 @@ class Data_parser:
     def list_to_str(self, in_list, delimiter):
         result = ''
         for element in in_list:
-                result += f'{str(element)}{delimiter}'
+            result += f'{str(element)}{delimiter}'
         return result[:-1]
 
-    def write_to_file(self):
-        with open(self.basic_out_file_name, 'w') as out_file:
-            out_file.write(self.list_to_str(self.headers, '\t')+'\n')
-            for element in self.processed_data:
-                out_file.write(self.list_to_str(element, '\t')+'\n')
+    def write_to_file(self, out_file_name, advanced=False):
+        if advanced == False:
+            headers = self.headers
+            data_to_write = self.processed_data
+        else:
+            headers = self.headers_for_summarized_data
+            data_to_write = self.get_summarized_data()
+        with open(out_file_name, 'w') as out_file:
+            out_file.write(self.list_to_str(headers, '\t'))
+            for element in data_to_write:
+                out_file.write('\n'+self.list_to_str(element, '\t'))
 
+    def get_last_dim_index(self):
+        for i in range(len(self.headers)):
+            if self.headers[i][0] == 'M':
+                return i-1
 
-            # tsw_writer = csv.writer(out_file, delimiter='\t')
-            # tsw_writer.writerow(self.headers)
-            # tsw_writer.writerows(self.processed_data)
+    def get_summarized_data(self):
+        last_dim_index = self.get_last_dim_index()
+        summarized_data = []
+        summarized_data.append(self.processed_data[0])
+        for data in self.processed_data[1:]:
+            equality = State_of_equality.EQUAL
+            for i in range(last_dim_index):
+                if summarized_data[-1][i] != data[i]:
+                    equality = State_of_equality.NOT_EQUAL
+            if equality == State_of_equality.EQUAL:
+                for i in range(last_dim_index + 1, len(self.headers)):
+                    summarized_data[-1][i] += data[i]
+            else:
+                summarized_data.append(data)
+        return summarized_data
+
+    def set_headers_for_summarized_data(self):
+        last_dim_index = self.get_last_dim_index()
+        self.headers_for_summarized_data = self.headers.copy()
+        for i in range(last_dim_index+1, len(self.headers_for_summarized_data)):
+            self.headers_for_summarized_data[i] = 'MS' + \
+                self.headers_for_summarized_data[i][1:]
 
     def print_errors(self):
         for e in self.errors:
@@ -180,4 +214,5 @@ data_parser = Data_parser()
 data_parser.get_data_from_files(file_names)
 data_parser.parse()
 data_parser.print_errors()
-data_parser.write_to_file()
+data_parser.write_to_file('basic.tsv')
+data_parser.write_to_file('advanced.tsv', advanced=True)
