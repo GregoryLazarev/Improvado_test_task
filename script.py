@@ -4,7 +4,6 @@ from abc import ABC, abstractmethod
 import csv
 import json
 import os
-from typing import List
 import xml.etree.ElementTree as ET
 from enum import Enum
 
@@ -39,12 +38,12 @@ class Argument_parser:
 
 class ReaderStrategy(ABC):
     @abstractmethod
-    def read(self, file) -> List:
+    def read(self, file):
         pass
 
 
 class Read_from_CSV(ReaderStrategy):
-    def read(self, file) -> List:
+    def read(self, file):
         result = []
         with open(file) as csv_file:
             data = csv.reader(csv_file, delimiter=',')
@@ -56,7 +55,7 @@ class Read_from_CSV(ReaderStrategy):
 
 
 class Read_from_json(ReaderStrategy):
-    def read(self, file) -> List:
+    def read(self, file):
         result = []
         with open(file) as json_file:
             data = json.load(json_file)
@@ -65,7 +64,7 @@ class Read_from_json(ReaderStrategy):
 
 
 class Read_from_xml(ReaderStrategy):
-    def read(self, file) -> List:
+    def read(self, file):
         result = []
         tree = ET.parse(file)
         root = tree.getroot()
@@ -206,13 +205,13 @@ class Data_parser:
             print(e)
 
 
-parser = Argument_parser()
-file_names = parser.get_args()
-reader = File_reader()
-data_parser = Data_parser()
-
-data_parser.get_data_from_files(file_names)
-data_parser.parse()
-data_parser.print_errors()
-data_parser.write_to_file('basic.tsv')
-data_parser.write_to_file('advanced.tsv', advanced=True)
+if __name__ == '__main__':
+    parser = Argument_parser()
+    file_names = parser.get_args()
+    reader = File_reader()
+    data_parser = Data_parser()
+    data_parser.get_data_from_files(file_names)
+    data_parser.parse()
+    data_parser.write_to_file('basic_results.tsv')
+    data_parser.write_to_file('advanced_results.tsv', advanced=True)
+    data_parser.print_errors()
